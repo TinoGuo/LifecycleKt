@@ -1,4 +1,4 @@
-# LifecycleKt
+# LifecycleKt [![](https://jitpack.io/v/TinoGuo/LifecycleKt.svg)](https://jitpack.io/#TinoGuo/LifecycleKt)
 
 this library help developers to handle lifecycle management in coroutines of Android
 
