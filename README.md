@@ -4,6 +4,11 @@ this library help developers to handle lifecycle management in coroutines of And
 
 inspire from [here](https://hellsoft.se/simple-asynchronous-loading-with-kotlin-coroutines-f26408f97f46)
 
+## Installation
+```groovy
+implementation 'com.github.TinoGuo:LifecycleKt:v1.0'
+```
+
 ## Usage
 ```kotlin
 load {
@@ -14,6 +19,8 @@ load {
 }
 ```
 code is very simple, just enjoy it!
+
+Welcom PR!
 
 License
 -------
