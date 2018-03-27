@@ -1,13 +1,12 @@
 package me.tino.lifecyclekt
 
 import android.app.ProgressDialog
+import android.arch.lifecycle.Lifecycle
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.withContext
+import timber.log.Timber
 
 class MainActivity : AppCompatActivity() {
 
@@ -16,25 +15,20 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         clickLifecycle.setOnClickListener {
-            val progressDialog = ProgressDialog(this)
-            with(progressDialog) {
-                setMessage("loading...")
-                show()
-            }
-            progressDialog.show()
-            load {
+            load(untilEvent = Lifecycle.Event.ON_DESTROY) {
+                Timber.e("start simulate IO")
                 //模拟耗时操作
-                delay(10_000)
+                delay(5_000)
                 getTaskResult()
             } then {
-                progressDialog.dismiss()
+                Timber.e("start UI")
                 //UI操作
                 textView.text = it.toString()
             }
         }
 
         clickView.setOnClickListener {
-            customView.loadTask()
+            customView.loadTask(5)
         }
     }
 

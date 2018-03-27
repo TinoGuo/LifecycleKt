@@ -8,6 +8,7 @@ import android.util.AttributeSet
 import android.view.View
 import kotlinx.coroutines.experimental.delay
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 /**
  * mailTo:guocheng@xuxu.in
@@ -37,9 +38,9 @@ class CustomView : View {
     ) : super(context, attrs, defStyleAttr, defStyleRes)
 
 
-    fun loadTask() {
+    fun loadTask(time: Int = 3) {
         load {
-            delay(3_000)
+            delay(time.toLong(), TimeUnit.SECONDS)
             val random = Random()
             Triple(random.nextInt(255), random.nextInt(255), random.nextInt(255))
         } then {
