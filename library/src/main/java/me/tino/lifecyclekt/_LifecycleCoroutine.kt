@@ -1,9 +1,9 @@
 package me.tino.lifecyclekt
 
+import android.arch.lifecycle.GenericLifecycleObserver
 import android.arch.lifecycle.Lifecycle
 import android.arch.lifecycle.LifecycleObserver
 import android.arch.lifecycle.LifecycleOwner
-import android.arch.lifecycle.OnLifecycleEvent
 import android.view.View
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.android.UI
@@ -16,24 +16,38 @@ import kotlinx.coroutines.experimental.android.UI
 
 /**
  * base on [LifecycleObserver] to manage lifecycle
+ * @param deferred the suspend job
+ * @param untilEvent the job should stop what event receive, default is [Lifecycle.Event.ON_DESTROY]
  */
-class CoroutineLifecycleListener(private val deferred: Deferred<*>) : LifecycleObserver {
-    @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-    fun cancelCoroutine() {
-        if (!deferred.isCancelled) {
-            deferred.cancel()
+class CoroutineLifecycleListener(
+    private val deferred: Deferred<*>,
+    private val untilEvent: Lifecycle.Event = Lifecycle.Event.ON_DESTROY
+) : GenericLifecycleObserver {
+    override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event?) {
+        //if the event is what you need
+        if (event == untilEvent) {
+            //if the job is not cancelled
+            if (!deferred.isCancelled) {
+                deferred.cancel()
+            }
+            //remove the observer
+            source.lifecycle.removeObserver(this)
         }
     }
 }
 
 /**
  * base on [View.OnAttachStateChangeListener] to manage lifecycle
+ * @param deferred the suspend job
  */
 class CoroutineViewListener(private val deferred: Deferred<*>) : View.OnAttachStateChangeListener {
-    override fun onViewDetachedFromWindow(v: View?) {
+    override fun onViewDetachedFromWindow(v: View) {
+        //if the job is not cancelled
         if (!deferred.isCancelled) {
             deferred.cancel()
         }
+        //remove the listener
+        v.removeOnAttachStateChangeListener(this)
     }
 
     override fun onViewAttachedToWindow(v: View?) {
@@ -64,18 +78,34 @@ fun <T> View.load(
  *  Attention：if you don't want to call [then]，Please call [Deferred.start] or [Deferred.await]
  *  but why not [async]
  *  @param context default dispatcher [CommonPool]
+ *  @param untilEvent the job should stop what event receive, default is [Lifecycle.Event.ON_DESTROY]
  *  @param loader the suspend task
  *  @return the lazy task
  */
 fun <T> LifecycleOwner.load(
     context: CoroutineDispatcher = CommonPool,
+    untilEvent: Lifecycle.Event = Lifecycle.Event.ON_DESTROY,
     loader: suspend CoroutineScope.() -> T
 ): Deferred<T> {
+    if (untilEvent != Lifecycle.Event.ON_STOP
+        && untilEvent != Lifecycle.Event.ON_PAUSE
+        && untilEvent != Lifecycle.Event.ON_DESTROY) {
+        throw LifecycleNotSupportException(
+            "Sorry! Please use any of " +
+                    "Lifecycle.Event.ON_STOP " +
+                    "Lifecycle.Event.ON_PAUSE " +
+                    "Lifecycle.Event.ON_DESTROY " +
+                    "state!!!"
+        )
+    }
+
     val deferred = async(context = context, start = CoroutineStart.LAZY) {
         loader()
     }
-    lifecycle.addObserver(CoroutineLifecycleListener(deferred))
-    return deferred
+    lifecycle.addObserver(CoroutineLifecycleListener(deferred, untilEvent))
+    return deferred.also {
+        it.invokeOnCompletion(true, true, {})
+    }
 }
 
 /**
@@ -90,8 +120,13 @@ infix fun <T> Deferred<T>.then(block: (T) -> Unit): Job {
 /**
  *  the extension function of [Deferred], it's called from UI thread, it will catch all the exception
  *  @param block what you want to do task on UI thread, and  return the result of UI thread
- *  @return the UI [Job]
+ *  @return the UI [Job] with the value
  */
 infix fun <T, R> Deferred<T>.then(block: (T) -> R): Deferred<R> {
     return async(UI) { block(this@then.await()) }
 }
+
+/**
+ * custom exception
+ */
+class LifecycleNotSupportException(message: String) : IllegalStateException(message)
