@@ -5,7 +5,16 @@ this library help developers to handle lifecycle management in coroutines of And
 inspire from [here](https://hellsoft.se/simple-asynchronous-loading-with-kotlin-coroutines-f26408f97f46)
 
 ## Installation
-```groovy
+```gradle
+allprojects {
+	repositories {
+			...
+			maven { url 'https://jitpack.io' }
+		}
+	}
+```
+
+```gradle
 implementation 'com.github.TinoGuo:LifecycleKt:v1.0'
 ```
 
