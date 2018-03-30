@@ -110,11 +110,12 @@ fun <T> LifecycleOwner.load(
 
 /**
  *  the extension function of [Deferred], it's called from UI thread
+ *  !!!Note: it will throw exception, if you don't want throw exception just use [then]
  *  @param block what you want to do task on UI thread
  *  @return the UI [Job]
  */
-infix fun <T> Deferred<T>.then(block: (T) -> Unit): Job {
-    return launch(UI) { block(this@then.await()) }
+infix fun <T> Deferred<T>.thenWithException(block: (T) -> Unit): Job {
+    return launch(UI) { block(this@thenWithException.await()) }
 }
 
 /**
