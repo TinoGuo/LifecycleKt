@@ -6,8 +6,6 @@ inspire from [here](https://hellsoft.se/simple-asynchronous-loading-with-kotlin-
 
 ## Installation
 ```groovy
-implementation 'com.github.TinoGuo:LifecycleKt:1.1'
-```gradle
 allprojects {
 	repositories {
 			...
@@ -16,8 +14,8 @@ allprojects {
 	}
 ```
 
-```gradle
-implementation 'com.github.TinoGuo:LifecycleKt:v1.0'
+```groovy
+implementation 'com.github.TinoGuo:LifecycleKt:1.1'
 ```
 
 ## Usage
