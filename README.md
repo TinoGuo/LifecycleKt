@@ -1,4 +1,4 @@
-# LifecycleKt
+# LifecycleKt [![](https://jitpack.io/v/TinoGuo/LifecycleKt.svg)](https://jitpack.io/#TinoGuo/LifecycleKt)
 
 this library help developers to handle lifecycle management in coroutines of Android
 
@@ -7,6 +7,17 @@ inspire from [here](https://hellsoft.se/simple-asynchronous-loading-with-kotlin-
 ## Installation
 ```groovy
 implementation 'com.github.TinoGuo:LifecycleKt:1.1'
+```gradle
+allprojects {
+	repositories {
+			...
+			maven { url 'https://jitpack.io' }
+		}
+	}
+```
+
+```gradle
+implementation 'com.github.TinoGuo:LifecycleKt:v1.0'
 ```
 
 ## Usage
