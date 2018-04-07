@@ -6,14 +6,16 @@ inspire from [here](https://hellsoft.se/simple-asynchronous-loading-with-kotlin-
 
 ## Installation
 ```groovy
-implementation 'com.github.TinoGuo:LifecycleKt:v1.0'
+implementation 'com.github.TinoGuo:LifecycleKt:1.1'
 ```
 
 ## Usage
 ```kotlin
-load {
+load(context = CommonPool, untilEvent = Lifecycle.Event.ON_DESTROY) {
     someIOThings()
     //of course you can get the state of coroutines from here
+} complete { throwable: Throwable? ->
+    //you can handle the completion or the error
 } then {
     someUIThins()
 }
