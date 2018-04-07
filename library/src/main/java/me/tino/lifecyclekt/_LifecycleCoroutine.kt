@@ -23,7 +23,7 @@ class CoroutineLifecycleListener(
     private val deferred: Deferred<*>,
     private val untilEvent: Lifecycle.Event = Lifecycle.Event.ON_DESTROY
 ) : GenericLifecycleObserver {
-    override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event?) {
+    override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
         //if the event is what you need
         if (event == untilEvent) {
             //if the job is not cancelled
@@ -50,7 +50,7 @@ class CoroutineViewListener(private val deferred: Deferred<*>) : View.OnAttachSt
         v.removeOnAttachStateChangeListener(this)
     }
 
-    override fun onViewAttachedToWindow(v: View?) {
+    override fun onViewAttachedToWindow(v: View) {
     }
 }
 
@@ -58,32 +58,34 @@ class CoroutineViewListener(private val deferred: Deferred<*>) : View.OnAttachSt
  *  extension function of [View], to load async task, [loader] must be sync
  *  Attention：if you don't want to call [then]，Please call [Deferred.start] or [Deferred.await]
  *  but why not [async]
- *  @param context default dispatcher [CommonPool]
+ *  @param context default dispatcher [DefaultDispatcher]
  *  @param loader the suspend task
  *  @return the lazy task
  */
 fun <T> View.load(
-    context: CoroutineDispatcher = CommonPool,
+    context: CoroutineDispatcher = DefaultDispatcher,
     loader: suspend CoroutineScope.() -> T
 ): Deferred<T> {
     val deferred = async(context = context, start = CoroutineStart.LAZY) {
         loader()
     }
     this.addOnAttachStateChangeListener(CoroutineViewListener(deferred))
-    return deferred
+    return deferred.also {
+        it.invokeOnCompletion(true, true, {})
+    }
 }
 
 /**
  *  extension function of [LifecycleOwner], to load async task, [loader] must be sync
  *  Attention：if you don't want to call [then]，Please call [Deferred.start] or [Deferred.await]
  *  but why not [async]
- *  @param context default dispatcher [CommonPool]
+ *  @param context default dispatcher [DefaultDispatcher]
  *  @param untilEvent the job should stop what event receive, default is [Lifecycle.Event.ON_DESTROY]
  *  @param loader the suspend task
  *  @return the lazy task
  */
 fun <T> LifecycleOwner.load(
-    context: CoroutineDispatcher = CommonPool,
+    context: CoroutineDispatcher = DefaultDispatcher,
     untilEvent: Lifecycle.Event = Lifecycle.Event.ON_DESTROY,
     loader: suspend CoroutineScope.() -> T
 ): Deferred<T> {
@@ -125,6 +127,11 @@ infix fun <T> Deferred<T>.thenWithException(block: (T) -> Unit): Job {
  */
 infix fun <T, R> Deferred<T>.then(block: (T) -> R): Deferred<R> {
     return async(UI) { block(this@then.await()) }
+}
+
+infix fun <T> Deferred<T>.complete(block: (Throwable?) -> Unit): Deferred<T> {
+    this.invokeOnCompletion(true, true) { block(it) }
+    return this
 }
 
 /**
