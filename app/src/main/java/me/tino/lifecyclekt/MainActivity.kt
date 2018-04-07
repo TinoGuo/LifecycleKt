@@ -18,8 +18,14 @@ class MainActivity : AppCompatActivity() {
             load(untilEvent = Lifecycle.Event.ON_DESTROY) {
                 Timber.e("start simulate IO")
                 //模拟耗时操作
-                delay(5_000)
+                delay(1_000)
                 getTaskResult()
+            } complete {
+                if (it != null) {
+                    Timber.e(it, "complete with error")
+                } else {
+                    Timber.e("complete without error")
+                }
             } then {
                 Timber.e("start UI")
                 //UI操作
