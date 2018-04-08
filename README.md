@@ -29,6 +29,11 @@ load(context = CommonPool, untilEvent = Lifecycle.Event.ON_DESTROY) {
     someUIThins()
 }
 ```
+###Note!!!
+complete block is not necessary, you can ignore it except you want to handle the completion
+
+##Over
+
 code is very simple, just enjoy it!
 
 Welcom PR!
